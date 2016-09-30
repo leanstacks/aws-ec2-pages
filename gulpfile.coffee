@@ -23,6 +23,10 @@ gulp.task 'html', ->
   gulp.src(['src/main/app/html/*.html','src/main/app/favicon.ico'])
     .pipe(gulp.dest('dist'))
 
+gulp.task 'php', ->
+  gulp.src('src/main/app/php/**')
+    .pipe(gulp.dest('dist'))
+
 gulp.task 'css', ->
   gulp.src('src/main/app/css/**/*.css')
     .pipe(gulp.dest('dist/assets/app/css'))
@@ -45,13 +49,14 @@ gulp.task 'tar', ->
     .pipe(gulp.dest('dist'))
 
 gulp.task 'default', ['clean'], ->
-  gulp.start 'lib', 'html', 'css', 'images', 'robots'
+  gulp.start 'lib', 'php', 'html', 'css', 'images', 'robots'
 
 gulp.task 'dist', ['clean'], ->
-  sequence ['lib', 'html', 'css', 'images', 'robots'], 'tar'
+  sequence ['lib', 'php', 'html', 'css', 'images', 'robots'], 'tar'
 
-gulp.task 'run', ['lib', 'html', 'css', 'images', 'robots'], ->
-  gulp.watch 'src/main/app/html/*.html', ['html']
+gulp.task 'run', ['lib', 'php', 'html', 'css', 'images', 'robots'], ->
+  gulp.watch 'src/main/app/php/**/*.php', ['php']
+  gulp.watch 'src/main/app/html/**/*.html', ['html']
   gulp.watch 'src/main/app/css/**/*.css', ['css']
   gulp.watch 'src/main/app/img/**/*', ['images']
   gulp.watch 'lib/**', ['lib']

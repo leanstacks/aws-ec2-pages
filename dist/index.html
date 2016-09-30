@@ -28,12 +28,14 @@
 
         <div ng-controller="MetadataController">
 
-            <div class="container">
+            <div class="container-fluid">
 
                 <div class="row">
                     <div class="col-md-12">
 
-                        <h1>EC2 Instance Detail</h1>
+                        <div class="page-header">
+                            <h1>EC2 Instance Detail</h1>
+                        </div>
 
                     </div>
                 </div>
@@ -45,11 +47,41 @@
 
                         <div class="row">
 
-                            <div class="col-md-3 text-right"><strong>Instance ID:</strong></div>
-                            <div class="col-md-3">{{metadata.instanceId}}</div>
+                            <div class="col-md-2 text-right"><strong>Instance ID:</strong></div>
+                            <div class="col-md-4">{{metadata.instanceId}}</div>
 
-                            <div class="col-md-3 text-right"><strong>Public DNS:</strong></div>
-                            <div class="col-md-3">{{metadata.publicHostname}}</div>
+                            <div class="col-md-2 text-right"><strong>Public DNS:</strong></div>
+                            <div class="col-md-4">{{metadata.publicHostname}}</div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-2 text-right"><strong>Instance Type:</strong></div>
+                            <div class="col-md-4">{{metadata.instanceType}}</div>
+
+                            <div class="col-md-2 text-right"><strong>Public IP:</strong></div>
+                            <div class="col-md-4">{{metadata.publicIpv4}}</div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-2 text-right"><strong>Private DNS:</strong></div>
+                            <div class="col-md-4">{{metadata.localHostname}}</div>
+
+                            <div class="col-md-2 text-right"><strong>Availability Zone:</strong></div>
+                            <div class="col-md-4">{{metadata.placement.availabilityZone}}</div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-2 text-right"><strong>Private IP:</strong></div>
+                            <div class="col-md-4">{{metadata.localIpv4}}</div>
+
+                            <div class="col-md-2 text-right"><strong>AMI ID:</strong></div>
+                            <div class="col-md-4">{{metadata.amiId}}</div>
 
                         </div>
 
@@ -58,7 +90,7 @@
 
             </div>
 
-            <div class="container">
+            <div class="container-fluid">
                 <hr/>
 
                 <div class="row">
@@ -119,29 +151,52 @@
             }
         ]);
 
-        leanstacksEc2Module.controller('MetadataController', ['$scope', 'Metadata', '$log',
-            function($scope, Metadata, $log) {
+        leanstacksEc2Module.controller('MetadataController', ['$scope', '$http', 'Metadata', '$log',
+            function($scope, $http, Metadata, $log) {
                 $log.log('> MetadataController');
 
                 $scope.metadata = {};
 
-                Metadata.get({ metadataKey: 'instance-id'}, function(metadataValue){
-                    $scope.metadata.instanceId = metadataValue;
+                Metadata.get('instance-id', function(response) {
+                    $scope.metadata.instanceId = response.data;
                 });
-                Metadata.get({ metadataKey: 'local-ipv4'}, function(metadataValue){
-                    $scope.metadata.localIpv4 = metadataValue;
+                Metadata.get('instance-type', function(response) {
+                    $scope.metadata.instanceType = response.data;
                 });
-                Metadata.get({ metadataKey: 'public-hostname'}, function(metadataValue){
-                    $scope.metadata.publicHostname = metadataValue;
+                Metadata.get('local-ipv4', function(response) {
+                    $scope.metadata.localIpv4 = response.data;
+                });
+                Metadata.get('local-hostname', function(response) {
+                    $scope.metadata.localHostname = response.data;
+                });
+                Metadata.get('public-hostname', function(response) {
+                    $scope.metadata.publicHostname = response.data;
+                });
+                Metadata.get('public-ipv4', function(response) {
+                    $scope.metadata.publicIpv4 = response.data;
+                });
+                Metadata.get('placement/availability-zone', function(response) {
+                    $scope.metadata.placement = {};
+                    $scope.metadata.placement.availabilityZone = response.data;
+                });
+                Metadata.get('ami-id', function(response) {
+                    $scope.metadata.amiId = response.data;
                 });
 
                 $log.log('< MetadataController');
             }
         ]);
 
-        leanstacksEc2Module.factory('Metadata', ['$resource',
-            function($resource) {
-                return $resource('http://169.254.169.254/latest/meta-data/:metadataKey', {}, {});
+        leanstacksEc2Module.factory('Metadata', ['$http', '$log',
+            function($http, $log) {
+
+                var service = {};
+
+                service.get = function (metadataKey, successFunction) {
+                    $http.get('metadata.php?key=' + metadataKey).then(successFunction);
+                }
+
+                return service;
             }
         ]);
     </script>
